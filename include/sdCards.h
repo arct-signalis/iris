@@ -247,10 +247,9 @@ void readBufferFromSD(uint8_t chipSelect = SD_CS_2) {
           if (file.readBytes((char*)values, 16) == 16) {
             Serial.print(values[0], 3); Serial.print(",");
             Serial.print(values[1], 3); Serial.print(",");
-            Serial.print(values[2], 3); Serial.print(",");
             Serial.print(values[3], 3);
-            chunkBytesRead += 16;
-            totalBytesRead += 16;
+            chunkBytesRead += 12;
+            totalBytesRead += 12;
           } else {
             Serial.print("ERROR_READING_MAG");
           }

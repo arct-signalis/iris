@@ -27,12 +27,11 @@ String formatTelemetry(const FlightData& data) {
   // Magnetometer data (mG) + Heading
   output += "Magnetometer: ";
   output += "X=" + String(data.mag.x, 1) + " Y=" + String(data.mag.y, 1) + " Z=" + String(data.mag.z, 1) + " mG";
-  output += " | Heading=" + String(data.mag.heading, 1) + " °";
   output += "\n";
   
   // Environmental data
   output += "Environment: ";
-  output += "T=" + String(data.env.temperature, 1) + "C P=" + String(data.env.pressure, 0) + "Pa Alt=" + String(data.env.altitude, 1) + "m";
+  output += "T=" + String(data.env.temperature, 1) + "C P=" + String(data.env.pressure, 0) + "Pa Alt=" + String(data.env.pressureAltitude, 1) + "m";
   output += "\n";
   
   // GPS data
@@ -81,13 +80,12 @@ String formatTestTelemetry(const FlightData& data, TelemetryType type = ALL) {
     output += String(data.mag.x, 1) + "\n";
     output += String(data.mag.y, 1) + "\n";
     output += String(data.mag.z, 1) + "\n";
-    output += String(data.mag.heading, 1) + "\n";
   }
   
   if (type == ENV || type == ALL) {
     output += String(data.env.temperature, 1) + "\n";
     output += String(data.env.pressure, 0) + "\n";
-    output += String(data.env.altitude, 1) + "\n";
+    output += String(data.env.pressureAltitude, 1) + "\n";
   }
   
   if (type == GPS || type == ALL) {
@@ -114,7 +112,7 @@ String formatCompactTelemetry(const FlightData& data) {
   output += String(data.gyro.x, 2) + "," + String(data.gyro.y, 2) + "," + String(data.gyro.z, 2) + ",";
   
   // Magnetometer
-  output += String(data.mag.x, 1) + "," + String(data.mag.y, 1) + "," + String(data.mag.z, 1) + "," + String(data.mag.heading, 1) + ",";
+  output += String(data.mag.x, 1) + "," + String(data.mag.y, 1) + "," + String(data.mag.z, 1) + ",";
   
   // Environmental
   output += String(data.env.temperature, 1) + "," + String(data.env.pressure, 1) + ",";

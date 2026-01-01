@@ -31,3 +31,21 @@
 // MISO Pin 12
 // GND GND
 ```
+
+
+After you download the Arduino_BMI270_BMM150 library make sure to enable higher sample rate.
+
+src/BMI270.cpp
+
+```c
+sens_cfg[0].cfg.acc.odr = BMI2_ACC_ODR_200HZ;
+sens_cfg[0].cfg.acc.odr = BMI2_ACC_ODR_200HZ;
+
+settings.preset_mode = BMM150_PRESETMODE_HIGHACCURACY;
+rslt = bmm150_set_presetmode(&settings, dev);
+```
+
+vo funkcii  bmm150_set_presetmode
+```c
+settings->data_rate = BMM150_DATA_RATE_30HZ;
+```

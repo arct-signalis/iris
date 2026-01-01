@@ -14,9 +14,10 @@ TinyGPSPlus gps;
 // ========== SENSOR READING FUNCTIONS ==========
 
 bool readAccelerometer(AccelerometerData& data) {
-  // Read from built-in BMI270 accelerometer - returns raw values in g
+  // Read from built-in BMI270 accelerometer
   if (IMU.accelerationAvailable()) {
     IMU.readAcceleration(data.x, data.y, data.z);
+    // BMI270 returns values in g (earth gravity)
     return true;
   }
   return false;
@@ -33,55 +34,25 @@ bool readGyroscope(GyroscopeData& data) {
 }
 
 bool readMagnetometer(MagnetometerData& data) {
-  // Read from built-in BMM150 magnetometer - returns raw values in µT
-  if (IMU.magneticFieldAvailable() && IMU.accelerationAvailable()) {
-    IMU.readMagneticField(data.x, data.y, data.z);
-    
-    // Get accelerometer data for tilt compensation
-    float ax, ay, az;
-    IMU.readAcceleration(ax, ay, az);
-    
-    // Calculate pitch and roll from accelerometer (in radians)
-    float pitch = atan2(ax, sqrt(ay * ay + az * az));
-    float roll = atan2(ay, az);
-    
-    // Tilt-compensated magnetometer readings
-    float mag_x_comp = data.x * cos(pitch) + data.z * sin(pitch);
-    float mag_y_comp = data.x * sin(roll) * sin(pitch) + 
-                       data.y * cos(roll) - 
-                       data.z * sin(roll) * cos(pitch);
-    
-    // Calculate tilt-compensated heading (0-360°)
-    data.heading = atan2(mag_y_comp, mag_x_comp) * 180.0 / PI;
-    if (data.heading < 0) {
-      data.heading += 360.0; // Normalize to 0-360°
-    }
-    
-    // Debug output (remove after testing)
-    // Serial.print("Pitch: "); Serial.print(pitch * 180.0 / PI);
-    // Serial.print(" Roll: "); Serial.print(roll * 180.0 / PI);
-    // Serial.print(" Heading: "); Serial.println(data.heading);
-    
-    // Apply calibration offset and magnetic declination correction
-    // TODO: Calibrate by pointing device north and noting the offset needed
-    // data.heading += COMPASS_CALIBRATION_OFFSET;  // Add to settings.h
-    // data.heading += MAGNETIC_DECLINATION_DEGREES; // Add to settings.h  
-    // if (data.heading >= 360.0) data.heading -= 360.0;
+  // Read from built-in BMM150 magnetometer
+  if (IMU.magneticFieldAvailable()) {
+    IMU.readMagneticField(data.x, data.y, data.z);  
+    // BMM150 returns values in µT (micro Tesla)
     return true;
   }
   return false;
 }
 
 bool readEnvironmental(EnvironmentalData& data) {
-  // Read from built-in LPS22HB barometric pressure sensor - returns raw values
+  // Read from built-in LPS22HB barometric pressure sensor
   data.temperature = BARO.readTemperature();  // °C
   data.pressure = BARO.readPressure();        // kPa (raw)
   
   // Calculate altitude using barometric formula  
-  data.altitude = ALTITUDE_CALCULATION_CONSTANT * (1.0 - pow(data.pressure / STANDARD_SEA_LEVEL_PRESSURE_KPA, BAROMETRIC_EXPONENT));
+  data.pressureAltitude = SEA_LEVEL_ALTITUDE * (1.0 - pow(data.pressure / STANDARD_SEA_LEVEL_PRESSURE_KPA, BAROMETRIC_EXPONENT));
   
   // Check for valid readings
-  if (isnan(data.temperature) || isnan(data.pressure) || isnan(data.altitude)) {
+  if (isnan(data.temperature) || isnan(data.pressure) || isnan(data.pressureAltitude)) {
     return false;
   }
   
@@ -107,6 +78,35 @@ void processGPSData() {
     gps.encode(gpsSerial.read());
   }
 }
+
+/*
+// Unused function for attitude calculation (roll, pitch, yaw) from accel and mag that could be calculated on Hermes
+AttitudeData calculateAttitude(const AccelerometerData& accel, const MagnetometerData& mag) {
+  AttitudeData attitude;
+  
+  // Roll and Pitch from accelerometer
+  attitude.roll = atan2(accel.y, accel.z) * 180.0 / PI;
+  attitude.pitch = atan2(-accel.x, sqrt(accel.y * accel.y + accel.z * accel.z)) * 180.0 / PI;
+  
+  // Convert to radians for tilt compensation
+  float pitch_rad = attitude.pitch * PI / 180.0;
+  float roll_rad = attitude.roll * PI / 180.0;
+  
+  // Tilt-compensated magnetometer readings
+  float mag_x_comp = mag.x * cos(pitch_rad) + mag.z * sin(pitch_rad);
+  float mag_y_comp = mag.x * sin(roll_rad) * sin(pitch_rad) + 
+                     mag.y * cos(roll_rad) - 
+                     mag.z * sin(roll_rad) * cos(pitch_rad);
+  
+  // Yaw (heading) from tilt-compensated magnetometer
+  attitude.yaw = atan2(mag_y_comp, mag_x_comp) * 180.0 / PI;
+  if (attitude.yaw < 0) {
+    attitude.yaw += 360.0;
+  }
+  
+  return attitude;
+}
+*/
 
 
 // ========== SENSOR INITIALIZATION ==========

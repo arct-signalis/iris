@@ -50,7 +50,7 @@ void updateSensors() {
     flightData.lastAccelGyroTime = timestamp;
   }
 
-  // Magnetometer at 10Hz
+  // Magnetometer
   if (timestamp - flightData.lastMagTime >= MAG_INTERVAL) {
     if (readMagnetometer(flightData.mag)) {
       writeToBuffer(SENSOR_MAG, &flightData.mag, MagnetometerData::SIZE, timestamp);
@@ -58,7 +58,7 @@ void updateSensors() {
     flightData.lastMagTime = timestamp;
   }
 
-  // Barometer at 50Hz
+  // Barometer
   if (timestamp - flightData.lastBaroTime >= BARO_INTERVAL) {
     if (readEnvironmental(flightData.env)) {
       writeToBuffer(SENSOR_BARO, &flightData.env, EnvironmentalData::SIZE, timestamp);
@@ -66,8 +66,9 @@ void updateSensors() {
     flightData.lastBaroTime = timestamp;
   }
 
-  // GPS at 3Hz
+  // GPS
   if (timestamp - flightData.lastGPSTime >= GPS_INTERVAL) {
+    timestamp = millis();
     processGPSData();
     if (readGPS(flightData.gps)) {
       writeToBuffer(SENSOR_GPS, &flightData.gps, GPSData::SIZE, timestamp);

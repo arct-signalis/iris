@@ -9,27 +9,31 @@
 struct AccelerometerData {
   float x, y, z;
   static constexpr uint8_t SIZE = 12;  // 3 * sizeof(float) = 12 bytes
+  // float gForce = totalAcceleration = sqrt(accel.x*accel.x + accel.y*accel.y + accel.z*accel.z); // g
+  // vx = ax * t; (you can find out position sx += vx * t)
 };
 
 // Gyroscope data structure (°/s) - BMI270 returns float  
 struct GyroscopeData {
   float x, y, z;
   static constexpr uint8_t SIZE = 12;  // 3 * sizeof(float) = 12 bytes
+  // float angularRate = sqrt(gyro.x*gyro.x + gyro.y*gyro.y + gyro.z*gyro.z); °/s
 };
 
 // Magnetometer data structure (µT) - BMM150 returns float
 struct MagnetometerData {
   float x, y, z;
-  float heading; // 0° = North, 90° = East, 180° = South, 270° = West
-  static constexpr uint8_t SIZE = 16;  // 4 * sizeof(float) = 16 bytes
+  static constexpr uint8_t SIZE = 12;  // 3 * sizeof(float) = 12 bytes
+  // float magneticFieldStrength = sqrt(mag.x*mag.x + mag.y*mag.y + mag.z*mag.z); // µT
 };
 
 // Environmental sensor data structure - LPS22HB returns float
 struct EnvironmentalData {
   float temperature;    // °C
   float pressure;       // kPa  
-  float altitude;       // m
+  float pressureAltitude;       // m
   static constexpr uint8_t SIZE = 12;  // 3 * sizeof(float) = 12 bytes
+  // float airDensity = (env.pressure * 100.0f) / (DRY_AIR_GAS_CONSTANT * (env.temperature + CELSIUS_TO_KELVIN)); // in kg/m³
 };
 
 // GPS data structure - TinyGPS++ returns double for lat/lng, others float
@@ -47,7 +51,7 @@ struct GPSData {
 struct FlightData {
   AccelerometerData accel;         // 12 bytes
   GyroscopeData gyro;              // 12 bytes  
-  MagnetometerData mag;            // 16 bytes
+  MagnetometerData mag;            // 12 bytes
   EnvironmentalData env;           // 12 bytes
   GPSData gps;                     // 26 bytes
   
@@ -56,13 +60,23 @@ struct FlightData {
   uint32_t lastMagTime = 0;        // 4 bytes
   uint32_t lastBaroTime = 0;       // 4 bytes
   uint32_t lastGPSTime = 0;        // 4 bytes
-  // Total FlightData: ~94 bytes
+  // Total FlightData: ~90 bytes
 };
 
 struct UnifiedCollectorBuffer {
-  uint8_t buffer[UNIFIED_BUFFER_SIZE];  // 8192 bytes
+  uint8_t buffer[UNIFIED_BUFFER_SIZE];  // 16384 bytes
   uint16_t bufferIndex = 0;             // 2 bytes
-  // Total buffer struct: ~8194 bytes
+  // Total buffer struct: ~16386 bytes
 };
+
+/*
+// Attitude data structure - calculated from accelerometer
+struct AttitudeData {
+  float pitch;    // degrees
+  float roll;     // degrees
+  float yaw;      // degrees (from magnetometer heading)
+  static constexpr uint8_t SIZE = 12;  // 3 * sizeof(float) = 12 bytes
+};
+*/
 
 #endif
