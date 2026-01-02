@@ -1,0 +1,22 @@
+@startuml IRIS System Components
+
+title IRIS Flight Controller
+
+package "Nano 33 BLE Sense Rev2" {
+  [BMI270 + BMM150]
+  [LPS22HB]
+}
+
+[GPS + BDS BeiDou]
+[SPI SMT 2GB SD Card]
+[Micro SD] 
+[LoRa E220-900T22D]
+[3.7V LiPo Battery]
+
+[Nano 33 BLE Sense Rev2] --> [GPS + BDS BeiDou]
+[Nano 33 BLE Sense Rev2] --> [SPI SMT 2GB SD Card]
+[Nano 33 BLE Sense Rev2] --> [Micro SD]
+[Nano 33 BLE Sense Rev2] --> [LoRa E220-900T22D]
+[3.7V LiPo Battery] --> [Nano 33 BLE Sense Rev2] : Power
+
+@enduml

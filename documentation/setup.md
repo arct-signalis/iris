@@ -1,3 +1,5 @@
+## Iris Wiring
+
 ```C
 // GPS - hardware serial (existing, d0, d1)
 // VCC 3.3V
@@ -32,20 +34,25 @@
 // GND GND
 ```
 
+## Install PlatformIO IDE for VSCode
+Quickstart [Documentation](https://docs.platformio.org/en/latest/integration/ide/vscode.html)
 
-After you download the Arduino_BMI270_BMM150 library make sure to enable higher sample rate.
 
-src/BMI270.cpp
+## Change Arduino_BMI270_BMM150 Library for higher
+
+After you download the Arduino_BMI270_BMM150 library into `.pio/libdeps/nano33ble` make sure to enable higher sample rate.
+
+`src/BMI270.cpp`
 
 ```c
 sens_cfg[0].cfg.acc.odr = BMI2_ACC_ODR_200HZ;
-sens_cfg[0].cfg.acc.odr = BMI2_ACC_ODR_200HZ;
+sens_cfg[1].cfg.gyr.odr = BMI2_GYR_ODR_200HZ;
 
 settings.preset_mode = BMM150_PRESETMODE_HIGHACCURACY;
 rslt = bmm150_set_presetmode(&settings, dev);
 ```
 
-vo funkcii  bmm150_set_presetmode
+jump inside function  `bmm150_set_presetmode`
 ```c
 settings->data_rate = BMM150_DATA_RATE_30HZ;
 ```

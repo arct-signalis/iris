@@ -1,0 +1,81 @@
+@startuml Flight State Machine
+
+title IRIS Flight Controller - State Machine
+
+start
+
+:Initialize System;
+note right
+  - Serial communication
+  - Sensors (IMU, magnetometer, barometer, GPS)
+  - Sensor calibration
+  - SD card logging
+end note
+
+-> Enter Main Loop;
+
+if (Debug Mode?) then (yes)
+  :DEBUG State;
+  note right: Print telemetry every 5s
+  
+  if (60 seconds elapsed?) then (yes)
+    -> Exit debug;
+  else (no)
+    -> Continue collecting;
+  endif
+  
+else (no)
+  :GROUND_IDLE;
+endif
+
+:GROUND_IDLE;
+if (Acceleration > 1.53g\nfor 0.1 seconds?) then (yes)
+  :ASCENDING_ENGINE;
+  note right: Launch detected!
+  
+  if (Acceleration ≤ 0.204g\nfor 0.1 seconds?) then (yes)
+    :ASCENDING_NO_ENGINE;
+    note right: Engine cutoff detected!
+  else (no)
+    -> Continue monitoring;
+  endif
+  
+else (no)
+  -> Stay on ground;
+endif
+
+:ASCENDING_NO_ENGINE;
+if (3 consecutive descending\naltitude readings?) then (yes)
+  :DESCENDING;
+  note right: Apogee reached!
+else (no)
+  -> Continue monitoring;
+endif
+
+:DESCENDING;
+if (Altitude < 2m AGL\nfor 3 seconds?) then (yes)
+  :LANDED;
+  note right: Landing confirmed!
+else (no)
+  -> Continue monitoring;
+endif
+
+:LANDED;
+:Read buffer from SD;
+
+stop
+
+floating note left
+  **collectTelemetry() Process:**
+  1. updateSensors() - Read all sensors
+  2. writeToBuffer() - Store in 16KB buffer  
+  3. flushBuffer() if buffer full
+  
+  **Sensor Intervals:**
+  - Accel/Gyro: 100Hz
+  - Magnetometer: 40Hz 
+  - Barometer: 250Hz
+  - GPS: 10Hz
+end note
+
+@enduml
