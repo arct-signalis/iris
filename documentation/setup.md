@@ -60,6 +60,16 @@ jump inside function  `bmm150_set_presetmode`
 settings->data_rate = BMM150_DATA_RATE_30HZ;
 ```
 
+## Goal Reading rates
+
+```
+200 accelorometer - defined manualy 
+200hz gyro - defined manualy 
+30hz magnetometer - defined manualy
+75Hz barometer - read on demand
+10hz gps - read on demand
+```
+
 ## Values interpretation
 
 ![](./images/accelerometer.jpg)

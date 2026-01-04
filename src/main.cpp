@@ -32,14 +32,13 @@ void setup()
   {
     Serial.println("Sensor initialization failure!");
     while (1)
-    {
-    }
+      ;
   }
 
-  // Initialize SD Cards
-  // testSDCard(SD_CS_1);
-  // testSDCard(SD_CS_2);
-  deleteFlightDataFile(SD_CS_2);
+  deleteFile(SD_FILENAME, SD_CS_2);
+#ifdef CSV_FORMAT_ENABLED
+  initCSVFile(SD_CS_2);
+#endif
 
 #ifdef DEBUG_STATE_ENABLED
   Serial.println("Debug mode enabled");
@@ -53,7 +52,7 @@ void loop()
   switch (stateData.currentState)
   {
   case DEBUG_STATE:
-    debugLoop(ALL);
+    debugLoop(NONE);
     break;
   case GROUND_IDLE:
     groundIdleLoop();

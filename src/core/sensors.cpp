@@ -153,6 +153,14 @@ bool initializeSensors()
   }
   Serial.println("IMU init");
 
+  Serial.println("IMU Sample Rates (Hz):");
+  Serial.print("  Accel: ");
+  Serial.println(IMU.accelerationSampleRate());
+  Serial.print("  Mag: ");
+  Serial.println(IMU.magneticFieldSampleRate());
+  Serial.print("  Gyro: ");
+  Serial.println(IMU.gyroscopeSampleRate());
+
   // Initialize built-in barometric pressure sensor (LPS22HB)
   if (!BARO.begin())
     Serial.println("Baro init failed!");

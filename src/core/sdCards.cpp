@@ -1,12 +1,9 @@
 #include "sdCards.h"
 
-// Helper function to get card number string
-const char *getCardNumber(uint8_t chipSelect)
-{
+const char *getCardNumber(uint8_t chipSelect)  {
   return (chipSelect == SD_CS_1) ? "1" : "2";
-}
+} 
 
-// Helper function to initialize SD card with error handling
 bool initSDCard(uint8_t chipSelect)
 {
   SD.end();
@@ -19,80 +16,54 @@ bool initSDCard(uint8_t chipSelect)
   return true;
 }
 
-bool deleteFlightDataFile(uint8_t chipSelect)
+void readFile(const char *filename, uint8_t chipSelect)
+{
+  if (!initSDCard(chipSelect))
+    return;
+
+  File file = SD.open(filename, FILE_READ);
+  if (!file)
+    return;
+
+  while (file.available())
+    Serial.write(file.read());
+
+  Serial.println("--- End of File ---");
+  file.close();
+}
+
+bool deleteFile(const char *filename, uint8_t chipSelect)
 {
   if (!initSDCard(chipSelect))
     return false;
 
-  if (!SD.exists(SD_FILENAME))
-  {
-    Serial.print(SD_FILENAME);
-    Serial.print(" not found on SD Card ");
-    Serial.println(getCardNumber(chipSelect));
-    return true;
-  }
+  if (!SD.exists(filename))
+    return true; // File doesn't exist, consider it deleted
 
-  bool success = SD.remove(SD_FILENAME);
-  Serial.print(success ? "Deleted " : "Error: Failed to delete ");
-  Serial.print(SD_FILENAME);
-  Serial.print(" from SD Card ");
-  Serial.println(getCardNumber(chipSelect));
-  return success;
+  return SD.remove(filename);
 }
 
-void testSDCard(uint8_t card)
+void initCSVFile(uint8_t chipSelect)
 {
-  if (initSDCard(card) && SD.exists(SD_FILENAME))
-  {
-    Serial.print("Card ");
-    Serial.print(" - File exists. Reading ");
-    Serial.println(SD_FILENAME);
+#ifdef CSV_FORMAT_ENABLED
+  if (!initSDCard(chipSelect))
+    return;
 
-    File file = SD.open(SD_FILENAME, FILE_READ);
-    if (file)
-    {
-      Serial.print("Card ");
-      Serial.println(" - File contents:");
-      while (file.available())
-      {
-        Serial.write(file.read());
-      }
-      file.close();
-      Serial.print("\n--- End of Card ");
-      Serial.println(" file ---");
-    }
-    else
-    {
-      Serial.print("Card ");
-      Serial.println(" - Error opening file for reading.");
-    }
-  }
-  else
-  {
-    Serial.print("Card ");
-    Serial.print(" - File not found. Creating ");
-    Serial.println(SD_FILENAME);
+  File csvFile = SD.open(SD_FILENAME, FILE_WRITE);
+  if (!csvFile)
+    return;
 
-    File file = SD.open(SD_FILENAME, FILE_WRITE);
-    if (file)
-    {
-      file.print("Hello from Card ");
-      file.print(card == SD_CS_1 ? "1" : "2");
-      file.println("!");
-      file.close();
-      Serial.print("Card ");
-      Serial.println(" - File created and written successfully!");
-    }
-    else
-    {
-      Serial.print("Card ");
-      Serial.println(" - Error creating file.");
-    }
-  }
+  csvFile.println("millis_ms_uint32,flightState_enum_int,accelX_g_float,accelY_g_float,accelZ_g_float,totalAccel_g_float,gyroX_degs_float,gyroY_degs_float,gyroZ_degs_float,angularRate_degs_float,magX_uT_float,magY_uT_float,magZ_uT_float,magFieldStrength_uT_float,pitch_deg_float,roll_deg_float,yaw_deg_float,offVert_deg_float,temperature_C_float,pressure_kPa_float,altitudeAboveLaunchPad_m_float,airDensity_kgm3_float,latitude_deg_float,longitude_deg_float,hdop_dimensionless_float,speed_kmh_float,course_deg_float,satellites_count_uint8");
+  
+  csvFile.close();
+#endif
 }
 
 bool writeBufferToSD(const uint8_t *buffer, uint16_t bufferSize, uint8_t chipSelect)
 {
+#ifdef CSV_FORMAT_ENABLED
+  return writeBufferToCSV(buffer, bufferSize, chipSelect);
+#else
   if (!initSDCard(chipSelect))
     return false;
 
@@ -123,9 +94,10 @@ bool writeBufferToSD(const uint8_t *buffer, uint16_t bufferSize, uint8_t chipSel
 #endif
 
   return (headerWritten == sizeof(uint16_t) && dataWritten == bufferSize);
+#endif
 }
 
-bool readSensorData(File &file, uint8_t sensorType, uint16_t &chunkBytesRead, uint32_t &totalBytesRead)
+bool readSensorDataBufferFromSD(File &file, uint8_t sensorType, uint16_t &chunkBytesRead, uint32_t &totalBytesRead)
 {
   switch (sensorType)
   {
@@ -219,9 +191,9 @@ bool readSensorData(File &file, uint8_t sensorType, uint16_t &chunkBytesRead, ui
     GPSData data;
     if (file.readBytes((char *)&data, sizeof(data)) == sizeof(data))
     {
-      Serial.print(data.latitude, 6);
+      Serial.print(data.latitude, 3);
       Serial.print(",");
-      Serial.print(data.longitude, 6);
+      Serial.print(data.longitude, 3);
       Serial.print(",");
       Serial.print(data.hdop, 2);
       Serial.print(",");
@@ -267,7 +239,7 @@ bool readSensorData(File &file, uint8_t sensorType, uint16_t &chunkBytesRead, ui
   }
 }
 
-bool processDataChunk(File &file, uint16_t bufferSize, uint32_t &totalBytesRead, uint16_t chunkNumber)
+bool processBufferChunkFromSD(File &file, uint16_t bufferSize, uint32_t &totalBytesRead, uint16_t chunkNumber)
 {
   Serial.print("Chunk #");
   Serial.print(chunkNumber);
@@ -306,7 +278,7 @@ bool processDataChunk(File &file, uint16_t bufferSize, uint32_t &totalBytesRead,
     Serial.print(timestamp);
     Serial.print(",");
 
-    if (!readSensorData(file, sensorType, chunkBytesRead, totalBytesRead))
+    if (!readSensorDataBufferFromSD(file, sensorType, chunkBytesRead, totalBytesRead))
       return false;
     Serial.println();
 
@@ -356,7 +328,7 @@ void readBufferFromSD(uint8_t chipSelect)
     }
     totalBytesRead += sizeof(uint16_t);
 
-    if (!processDataChunk(file, bufferSize, totalBytesRead, chunkNumber++))
+    if (!processBufferChunkFromSD(file, bufferSize, totalBytesRead, chunkNumber++))
       break;
 
     if (totalFileSize > 10000)
@@ -371,4 +343,244 @@ void readBufferFromSD(uint8_t chipSelect)
   Serial.print("=== End of Flight Data (");
   Serial.print(totalBytesRead);
   Serial.println(" bytes processed) ===");
+}
+
+void writeCSVRow(File &csvFile, uint32_t timestamp, const CSVRow &row)
+{
+  csvFile.print(timestamp);
+  csvFile.print(",0,");
+
+  if (row.hasAccel)
+  {
+    csvFile.print(row.accel.x, 3);
+    csvFile.print(",");
+    csvFile.print(row.accel.y, 3);
+    csvFile.print(",");
+    csvFile.print(row.accel.z, 3);
+    csvFile.print(",");
+    csvFile.print(row.accel.totalAcceleration, 3);
+  }
+  else
+    csvFile.print(",,,");
+
+  csvFile.print(",");
+
+  if (row.hasGyro)
+  {
+    csvFile.print(row.gyro.x, 3);
+    csvFile.print(",");
+    csvFile.print(row.gyro.y, 3);
+    csvFile.print(",");
+    csvFile.print(row.gyro.z, 3);
+    csvFile.print(",");
+    csvFile.print(row.gyro.angularRate, 3);
+  }
+  else
+    csvFile.print(",,,");
+
+  csvFile.print(",");
+
+  if (row.hasMag)
+  {
+    csvFile.print(row.mag.x, 3);
+    csvFile.print(",");
+    csvFile.print(row.mag.y, 3);
+    csvFile.print(",");
+    csvFile.print(row.mag.z, 3);
+    csvFile.print(",");
+    csvFile.print(row.mag.magneticFieldStrength, 3);
+  }
+  else
+    csvFile.print(",,,");
+
+  csvFile.print(",");
+
+  if (row.hasAttitude)
+  {
+    csvFile.print(row.attitude.pitch, 3);
+    csvFile.print(",");
+    csvFile.print(row.attitude.roll, 3);
+    csvFile.print(",");
+    csvFile.print(row.attitude.yaw, 3);
+    csvFile.print(",");
+    csvFile.print(row.attitude.offVert, 3);
+  }
+  else
+    csvFile.print(",,,");
+
+  csvFile.print(",");
+
+  if (row.hasBaro)
+  {
+    csvFile.print(row.env.temperature, 3);
+    csvFile.print(",");
+    csvFile.print(row.env.pressure, 3);
+    csvFile.print(",");
+    csvFile.print(row.env.altitudeAboveLaunchPad, 3);
+    csvFile.print(",");
+    csvFile.print(row.env.airDensity, 3);
+  }
+  else
+    csvFile.print(",,,");
+
+  csvFile.print(",");
+
+  if (row.hasGPS)
+  {
+    csvFile.print(row.gps.latitude, 3);
+    csvFile.print(",");
+    csvFile.print(row.gps.longitude, 3);
+    csvFile.print(",");
+    csvFile.print(row.gps.hdop, 3);
+    csvFile.print(",");
+    csvFile.print(row.gps.speed, 3);
+    csvFile.print(",");
+    csvFile.print(row.gps.course, 3);
+    csvFile.print(",");
+    csvFile.print(row.gps.satellites);
+  }
+  else
+    csvFile.print(",,,,,");
+
+  csvFile.println();
+}
+
+bool writeBufferToCSV(const uint8_t *buffer, uint16_t bufferSize, uint8_t chipSelect)
+{
+  if (!initSDCard(chipSelect))
+    return false;
+
+  File csvFile = SD.open(SD_FILENAME, FILE_WRITE);
+  if (!csvFile)
+    return false;
+
+  // Single row to hold current data being assembled
+  CSVRow currentRow;
+  uint32_t currentTimestamp = 0;
+  bool hasCurrentRow = false;
+
+  // Parse buffer sequentially
+  uint16_t bufferPos = 0;
+  while (bufferPos < bufferSize)
+  {
+    uint8_t sensorType = buffer[bufferPos++];
+
+    uint32_t timestamp;
+    memcpy(&timestamp, &buffer[bufferPos], sizeof(timestamp));
+    bufferPos += sizeof(timestamp);
+
+    // If timestamp changed, write current row and start new one
+    if (hasCurrentRow && timestamp != currentTimestamp)
+    {
+      writeCSVRow(csvFile, currentTimestamp, currentRow);
+      currentRow = CSVRow(); // Reset row
+    }
+
+    currentTimestamp = timestamp;
+    hasCurrentRow = true;
+
+    // Add sensor data to current row
+    switch (sensorType)
+    {
+    case SENSOR_ACCEL:
+      memcpy(&currentRow.accel, &buffer[bufferPos], sizeof(AccelerometerData));
+      currentRow.hasAccel = true;
+      bufferPos += sizeof(AccelerometerData);
+      break;
+
+    case SENSOR_GYRO:
+      memcpy(&currentRow.gyro, &buffer[bufferPos], sizeof(GyroscopeData));
+      currentRow.hasGyro = true;
+      bufferPos += sizeof(GyroscopeData);
+      break;
+
+    case SENSOR_MAG:
+      memcpy(&currentRow.mag, &buffer[bufferPos], sizeof(MagnetometerData));
+      currentRow.hasMag = true;
+      bufferPos += sizeof(MagnetometerData);
+      break;
+
+    case SENSOR_ATTITUDE:
+      memcpy(&currentRow.attitude, &buffer[bufferPos], sizeof(AttitudeData));
+      currentRow.hasAttitude = true;
+      bufferPos += sizeof(AttitudeData);
+      break;
+
+    case SENSOR_BARO:
+      memcpy(&currentRow.env, &buffer[bufferPos], sizeof(EnvironmentalData));
+      currentRow.hasBaro = true;
+      bufferPos += sizeof(EnvironmentalData);
+      break;
+
+    case SENSOR_GPS:
+      memcpy(&currentRow.gps, &buffer[bufferPos], sizeof(GPSData));
+      currentRow.hasGPS = true;
+      bufferPos += sizeof(GPSData);
+      break;
+
+    default:
+      csvFile.close();
+      return false;
+    }
+  }
+
+  // Write final row if exists
+  if (hasCurrentRow)
+  {
+    writeCSVRow(csvFile, currentTimestamp, currentRow);
+  }
+
+  csvFile.close();
+  return true;
+}
+
+void testSDCard(uint8_t card)
+{
+  if (initSDCard(card) && SD.exists(SD_FILENAME))
+  {
+    Serial.print("Card ");
+    Serial.print(" - File exists. Reading ");
+    Serial.println(SD_FILENAME);
+
+    File file = SD.open(SD_FILENAME, FILE_READ);
+    if (file)
+    {
+      Serial.print("Card ");
+      Serial.println(" - File contents:");
+      while (file.available())
+      {
+        Serial.write(file.read());
+      }
+      file.close();
+      Serial.print("\n--- End of Card ");
+      Serial.println(" file ---");
+    }
+    else
+    {
+      Serial.print("Card ");
+      Serial.println(" - Error opening file for reading.");
+    }
+  }
+  else
+  {
+    Serial.print("Card ");
+    Serial.print(" - File not found. Creating ");
+    Serial.println(SD_FILENAME);
+
+    File file = SD.open(SD_FILENAME, FILE_WRITE);
+    if (file)
+    {
+      file.print("Hello from Card ");
+      file.print(card == SD_CS_1 ? "1" : "2");
+      file.println("!");
+      file.close();
+      Serial.print("Card ");
+      Serial.println(" - File created and written successfully!");
+    }
+    else
+    {
+      Serial.print("Card ");
+      Serial.println(" - Error creating file.");
+    }
+  }
 }

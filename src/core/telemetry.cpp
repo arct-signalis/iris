@@ -7,6 +7,10 @@ String formatTestTelemetry(const FlightData *data, TelemetryType type)
 {
   String output = "";
 
+  // Return empty string for NONE type
+  if (type == NONE)
+    return output;
+
   // Header with timestamp and packet info
   output += "\n================================";
   output += "\nTime: " + String(GET_TIME_MS()) + "ms";

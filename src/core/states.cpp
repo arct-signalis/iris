@@ -49,7 +49,7 @@ void debugLoop(TelemetryType type)
   collectTelemetry();
   if (GET_TIME_MS() - stateData.lastEchoTime >= SECONDS_TO_MILLIS(5))
   {
-    Serial.println(formatTestTelemetry(&flightData, type));
+    Serial.print(formatTestTelemetry(&flightData, type));
     stateData.lastEchoTime = GET_TIME_MS();
   }
   if (GET_TIME_MS() - stateData.startTime >= SECONDS_TO_MILLIS(60))
@@ -185,8 +185,11 @@ void descendingLoop()
 
 void landedLoop()
 {
+#ifdef CSV_FORMAT_ENABLED
+  readFile(SD_FILENAME, SD_CS_2);
+#else
   readBufferFromSD(SD_CS_2); // Use default SD card 2
+#endif
   while (1)
-  {
-  }
+    ;
 }

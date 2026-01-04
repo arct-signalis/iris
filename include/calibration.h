@@ -7,22 +7,23 @@
 
 struct AccelerometerCalibration
 {
-  float biasX, biasY, biasZ;
-  float scaleX, scaleY, scaleZ;
+  float biasX = 0.0, biasY = 0.0, biasZ = 0.0;
+  float scaleX = 1.0, scaleY = 1.0, scaleZ = 1.0;
 };
 
 struct GyroscopeCalibration
 {
-  float biasX, biasY, biasZ;
+  float biasX = 0.0, biasY = 0.0, biasZ = 0.0;
 };
 
 struct MagnetometerCalibration
 {
-  float hardIronX, hardIronY, hardIronZ;
-  float softIronXX, softIronXY, softIronXZ;
-  float softIronYX, softIronYY, softIronYZ;
-  float softIronZX, softIronZY, softIronZZ;
+  float hardIronX = 0.0, hardIronY = 0.0, hardIronZ = 0.0;
+  float softIronXX = 1.0, softIronXY = 0.0, softIronXZ = 0.0;
+  float softIronYX = 0.0, softIronYY = 1.0, softIronYZ = 0.0;
+  float softIronZX = 0.0, softIronZY = 0.0, softIronZZ = 1.0;
 };
+
 
 AccelerometerData applyCalibratedAccelerometer(AccelerometerData data);
 GyroscopeData applyCalibratedGyroscope(GyroscopeData data);

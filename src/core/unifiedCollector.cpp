@@ -43,15 +43,15 @@ void updateSensors()
   if (readGyroscope(&flightData.gyro))
     writeToBuffer(SENSOR_GYRO, &flightData.gyro, sizeof(GyroscopeData), timestamp);
 
-  if (readMagnetometer(&flightData.mag))
-    writeToBuffer(SENSOR_MAG, &flightData.mag, sizeof(MagnetometerData), timestamp);
-
   if (readEnvironmental(&flightData.env))
   {
     calculateAttitude(&flightData.attitude, flightData.accel, flightData.mag);
     writeToBuffer(SENSOR_BARO, &flightData.env, sizeof(EnvironmentalData), timestamp);
     writeToBuffer(SENSOR_ATTITUDE, &flightData.attitude, sizeof(AttitudeData), timestamp);
   }
+
+  if (readMagnetometer(&flightData.mag))
+    writeToBuffer(SENSOR_MAG, &flightData.mag, sizeof(MagnetometerData), timestamp);
 
   processGPSData();
   if (readGPS(&flightData.gps))

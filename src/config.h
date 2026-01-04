@@ -2,8 +2,14 @@
 #define CONFIG_H
 
 // Debug Settings
-#define DEBUG_STATE_ENABLED // Uncomment to enable debug mode
-// #define DEBUG_SD_VERBOSE                   // Uncomment to enable verbose SD card write debugging
+#define DEBUG_STATE_ENABLED                   // Uncomment to enable debug mode
+//#define DEBUG_SD_VERBOSE                   // Uncomment to enable verbose SD card write debugging
+#define CSV_FORMAT_ENABLED                    // Uncomment to enable CSV format instead of binary
+#ifdef CSV_FORMAT_ENABLED
+#define SD_FILENAME "data.csv"
+#else
+#define SD_FILENAME "data.txt"
+#endif
 
 // Calibration Settings
 // #define GPS_WAIT_FOR_SATELLITES            // Uncomment to enable waiting for GPS lock before proceeding
@@ -33,7 +39,6 @@
 // SD
 #define SD_CS_1 10
 #define SD_CS_2 2
-#define SD_FILENAME "test.txt"
 #define O_READ 0x01
 #define O_WRITE 0x02
 

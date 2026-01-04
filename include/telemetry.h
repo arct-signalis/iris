@@ -8,6 +8,7 @@
 // ========== TELEMETRY MANAGEMENT ====================
 enum TelemetryType
 {
+  NONE,
   ACCEL,
   GYRO,
   MAG,
