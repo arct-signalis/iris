@@ -186,5 +186,7 @@ void descendingLoop()
 void landedLoop()
 {
   readBufferFromSD(SD_CS_2); // Use default SD card 2
-  while (1) {}
+  while (1)
+  {
+  }
 }

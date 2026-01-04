@@ -91,7 +91,6 @@ void calibrateAccelerometer()
   sensorCalibration.accel.scaleX = 1.0;
   sensorCalibration.accel.scaleY = 1.0;
   sensorCalibration.accel.scaleZ = 1.0;
-  sensorCalibration.accel.isCalibrated = true;
 
   Serial.println("Accel calibration done");
 }
@@ -126,7 +125,6 @@ void calibrateGyroscope()
   sensorCalibration.gyro.biasX = sumX / samples;
   sensorCalibration.gyro.biasY = sumY / samples;
   sensorCalibration.gyro.biasZ = sumZ / samples;
-  sensorCalibration.gyro.isCalibrated = true;
 
   Serial.println("Gyro calibration done");
 }
@@ -192,8 +190,6 @@ void calibrateMagnetometer()
   sensorCalibration.mag.softIronZX = 0.0;
   sensorCalibration.mag.softIronZY = 0.0;
 
-  sensorCalibration.mag.isCalibrated = true;
-
   Serial.println("Magnetometer calibration done");
 }
 
@@ -236,13 +232,12 @@ void calibrateBarometer()
 void calibrateAllSensors()
 {
   Serial.println("Starting calibration...");
-  calibrateAccelerometer()
+  calibrateAccelerometer();
   calibrateGyroscope();
   calibrateBarometer();
 #ifdef MAGNETOMETER_CALIBRATION_ENABLED
   calibrateMagnetometer();
 #endif
-
 
   return;
 }

@@ -31,7 +31,9 @@ void setup()
   if (!initializeSensors())
   {
     Serial.println("Sensor initialization failure!");
-    while (1) {}
+    while (1)
+    {
+    }
   }
 
   // Initialize SD Cards
