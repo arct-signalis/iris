@@ -2,38 +2,34 @@
 #define CALIBRATION_H
 
 #include <Arduino.h>
-#include "settings.h"
+#include "config.h"
 #include "structs.h"
 
-struct AccelerometerCalibration {
-  float biasX, biasY, biasZ;              
-  float scaleX, scaleY, scaleZ;           
-  bool isCalibrated;
+struct AccelerometerCalibration
+{
+  float biasX, biasY, biasZ;
+  float scaleX, scaleY, scaleZ;
 };
 
-struct GyroscopeCalibration {
-  float biasX, biasY, biasZ;              
-  bool isCalibrated;
+struct GyroscopeCalibration
+{
+  float biasX, biasY, biasZ;
 };
 
-#ifdef MAGNETOMETER_CALIBRATION_ENABLED
-struct MagnetometerCalibration {
-  float hardIronX, hardIronY, hardIronZ;  
-  float softIronXX, softIronXY, softIronXZ; 
+struct MagnetometerCalibration
+{
+  float hardIronX, hardIronY, hardIronZ;
+  float softIronXX, softIronXY, softIronXZ;
   float softIronYX, softIronYY, softIronYZ;
   float softIronZX, softIronZY, softIronZZ;
-  bool isCalibrated;
 };
-#else
-struct MagnetometerCalibration {
-  bool isCalibrated;
-};
-#endif
 
-struct SensorCalibration {
+struct SensorCalibration
+{
   AccelerometerCalibration accel;
   GyroscopeCalibration gyro;
   MagnetometerCalibration mag;
+  bool isCalibrated;
 };
 
 extern SensorCalibration sensorCalibration;
@@ -42,14 +38,10 @@ AccelerometerData applyCalibratedAccelerometer(AccelerometerData data);
 GyroscopeData applyCalibratedGyroscope(GyroscopeData data);
 MagnetometerData applyCalibratedMagnetometer(MagnetometerData data);
 
-#ifdef MAGNETOMETER_CALIBRATION_ENABLED
-bool calibrateMagnetometer();
+void calibrateMagnetometer();
+void calibrateAccelerometer();
+void calibrateGyroscope();
+void calibrateBarometer();
+
+void calibrateAllSensors();
 #endif
-
-bool calibrateAccelerometer();
-bool calibrateGyroscope();
-bool calibrateBarometer();
-
-bool calibrateAllSensors();
-
-#endif 

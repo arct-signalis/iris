@@ -2,11 +2,12 @@
 #define TELEMETRY_H
 
 #include <Arduino.h>
-#include "settings.h"
+#include "config.h"
 #include "structs.h"
 
 // ========== TELEMETRY MANAGEMENT ====================
-enum TelemetryType {
+enum TelemetryType
+{
   ACCEL,
   GYRO,
   MAG,
@@ -16,6 +17,6 @@ enum TelemetryType {
   ALL
 };
 
-String formatTestTelemetry(const FlightData& data, TelemetryType type);
+String formatTestTelemetry(const FlightData *data, TelemetryType type);
 
 #endif

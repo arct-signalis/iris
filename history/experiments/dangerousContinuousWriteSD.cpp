@@ -3,7 +3,7 @@
 
 #include <SD.h>
 
-#include "settings.h"
+#include "config.h"
 
 // SD Card selection enum for readable code
 enum SDCard {
