@@ -13,6 +13,7 @@
 #include "unifiedCollector.h"
 #include "telemetry.h"
 #include "utils.h"
+#include "lora.h"
 
 UnifiedCollectorBuffer collectorBuffer;
 FlightData flightData;
@@ -25,6 +26,9 @@ void setup()
   while (!Serial)
     delay(10);
   Serial.println("Nano 33 BLE Sense Rev2");
+
+  // Initialize LoRa module
+  loraInit();
 
   // Initialize Sensors
   changeState(SENSORS_CALIBRATING);
@@ -52,7 +56,7 @@ void loop()
   switch (stateData.currentState)
   {
   case DEBUG_STATE:
-    debugLoop(NONE);
+    debugLoop(ALL);
     break;
   case GROUND_IDLE:
     groundIdleLoop();

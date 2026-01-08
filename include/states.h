@@ -34,6 +34,7 @@ struct FlightStateData
   uint32_t landingConfirmStart; // Start time for landing confirmation
   float landingAltitude;        // Altitude when landing detection started
   uint32_t lastEchoTime;
+  uint32_t lastLoraSendTime;
 };
 
 extern UnifiedCollectorBuffer collectorBuffer;

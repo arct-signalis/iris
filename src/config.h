@@ -2,9 +2,10 @@
 #define CONFIG_H
 
 // Debug Settings
-#define DEBUG_STATE_ENABLED                   // Uncomment to enable debug mode
+#define DEBUG_STATE_ENABLED                  // Uncomment to enable debug mode
+#define DEBUG_TIME_SECONDS 30*60             // Duration of debug mode in seconds
 //#define DEBUG_SD_VERBOSE                   // Uncomment to enable verbose SD card write debugging
-#define CSV_FORMAT_ENABLED                    // Uncomment to enable CSV format instead of binary
+#define CSV_FORMAT_ENABLED                   // Uncomment to enable CSV format instead of binary
 #ifdef CSV_FORMAT_ENABLED
 #define SD_FILENAME "data.csv"
 #else
@@ -41,6 +42,14 @@
 #define SD_CS_2 2
 #define O_READ 0x01
 #define O_WRITE 0x02
+
+// Lora
+#define LORA_M0 5
+#define LORA_M1 6
+#define LORA_RX 3
+#define LORA_TX 4
+#define LORA_AUX 7
+#define FREQUENCY_868
 
 // Buffer Settings
 #define UNIFIED_BUFFER_SIZE 16384                                   // 16KB buffer - adjust based on available memory

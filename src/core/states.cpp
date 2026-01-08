@@ -5,6 +5,7 @@
 #include "telemetry.h"
 #include "sdCards.h"
 #include "utils.h"
+#include "lora.h"
 
 void changeState(FlightState newState)
 {
@@ -52,10 +53,14 @@ void debugLoop(TelemetryType type)
     Serial.print(formatTestTelemetry(&flightData, type));
     stateData.lastEchoTime = GET_TIME_MS();
   }
-  if (GET_TIME_MS() - stateData.startTime >= SECONDS_TO_MILLIS(60))
+  if (GET_TIME_MS() - stateData.startTime >= SECONDS_TO_MILLIS(DEBUG_TIME_SECONDS))
   {
     Serial.println("1 minute telemetry collection complete");
     changeState(LANDED);
+  }
+  if (GET_TIME_MS() - stateData.lastLoraSendTime >= SECONDS_TO_MILLIS(0.5)) {
+    loraSend();
+    stateData.lastLoraSendTime = GET_TIME_MS();
   }
 }
 
